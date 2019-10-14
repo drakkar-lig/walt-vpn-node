@@ -1,0 +1,1 @@
+WALT_VPN_ENTRYPOINT="$(walt-vpn-conf --entrypoint)"

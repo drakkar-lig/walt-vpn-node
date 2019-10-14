@@ -1,0 +1,30 @@
+#!/bin/sh
+
+USAGE="Usage: $0 --entrypoint"
+
+if [ "$1" != "--entrypoint" ]
+then
+    echo "$USAGE" >&2
+    exit 1
+fi
+
+mkdir /tmp/p1
+mount /dev/mmcblk0p1 /tmp/p1
+
+if [ -f "/tmp/p1/walt-vpn.conf" ]
+then
+    source /tmp/p1/walt-vpn.conf
+    echo "$WALT_VPN_ENTRYPOINT"
+else
+    echo "Missing file walt-vpn.conf on first SD card partition!" >&2
+fi
+
+umount /tmp/p1
+rmdir /tmp/p1
+
+if [ "$WALT_VPN_ENTRYPOINT" = "" ]
+then
+    exit 2
+else
+    exit 0  # ok
+fi

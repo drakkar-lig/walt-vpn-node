@@ -1,11 +1,14 @@
 #!/bin/sh
 set -e
 
-# install walt-common and walt-virtual
-cd /root/walt-python-packages
-dev/info-updater.py
-cd common && python3 -m pip install . && cd ..
-cd virtual && python3 -m pip install . && cd ..
+# create missing ssh host keys
+# ssh service will try to do it and fail otherwise, because the filesystem
+# is kept read-only.
+/usr/bin/ssh-keygen -A
 
-# run walt-virtual-setup
-walt-virtual-setup --type VPN_CLIENT --init-system BUSYBOX
+# instruct the OS to mount rootfs read-only
+sed -i -e 's/\([[:space:]]\/[[:space:]].*[[:space:]]\)rw,/\1ro,/' /etc/fstab
+
+# run setup commands
+walt-virtual-setup-node --init-system BUSYBOX
+walt-vpn-setup --type VPN_CLIENT --init-system BUSYBOX

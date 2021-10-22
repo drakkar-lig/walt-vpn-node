@@ -3,31 +3,28 @@
 
 $ make raspberrypi3_64_defconfig 
 $ make menuconfig
+# - Kernel / Kernel configuration: set to "Using a custom (def)config file"
+#                                  Configuration file path: "/root/buildroot/kernel.config"
 # - Toolchain / C library: set to glibc
 # - Target packages / Miscellaneous: add QEMU
-# - Target packages / Development tools: add git, make
 #                                    Enable specific targets: "aarch64-softmmu"
-# - Target packages / Networking applications: add iproute2, openssh, ntp and ntp/sntp/ntpq
-# - Target packages > Libraries > Hardware handling: add libusb, uhubctl
-# - Target packages > Libraries > Networking : add usb-redir
+                                     Enable FDT
+# - Target packages / Development tools: add git, make
+# - Target packages / Networking applications: add iproute2, openssh, ntp and ntpd/sntp/ntpq
+# - Target packages > Libraries > Hardware handling: add libusb
+# - Target packages > Libraries > Networking : add usbredir
 # - Target packages > Shell and utilities : add screen
 # - Target packages > Interpreter languages and scripting: add python3
-#                                                          add External python modules / python-pip
-#                                                          add Core python modules / curses, readline, ssl
-# - Kernel / Kernel configuration: set to "Using a custom (def)config file"
-#                                  Configuration file path: "/root/buildroot-2019.08/kernel.config"
+#                                                          add External python modules / python-cffi, python-pip
+#                                                          add Core python modules / curses, readline
 # - Filesystem images / ext2/3/4 root filesystem: set exact size to 400M
 # - System configuration / System hostname: set to "walt-vpn"
 # - System configuration / System banner: set to "Welcome to walt vpn node"
 # - System configuration / remount root filesystem read-write during boot: disable
 # - System configuration / Root filesystem overlay directories: set to "$(TOPDIR)/../overlay"
 
-# how to obtain kernel.config
-# ---------------------------
-
+# how to obtain a kernel.config:
+# ------------------------------
 $ make raspberrypi3_64_defconfig 
-$ make linux-menuconfig
-# - set "Virtualization"
-# - Virtualization: set "Kernel-based Virtual Machine (KVM) support",
-#                       "Cross-endian support for vhost" and 
-#                       "Host kernel accelerator for virtio net" (Module)
+$ make linux-menuconfig   # very long process the 1st time
+# - Virtualization: enable

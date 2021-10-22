@@ -1,0 +1,17 @@
+#!/bin/sh
+{
+    flock 200
+    # if / already writable, just run the command
+    if touch / 2>/dev/null
+    then
+        # running command
+        "$@"
+    else
+        echo "Remounting read-write..."
+        mount -o remount,rw /
+        # running command
+        "$@"
+        echo "Remounting read-only..."
+        mount -o remount,ro /
+    fi                 
+} 200>/run/writefs.lock

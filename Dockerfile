@@ -1,8 +1,10 @@
 # Creation of builder image
 # *************************
+FROM debian:buster as builder
+
+ENV BUILDROOT_VERSION=2021.08.1
 
 # install needed packages
-FROM debian:buster as builder
 RUN apt-get update && apt-get install -y \
           python3-pip git wget bzip2 make gcc file g++ patch cpio python unzip rsync bc perl \
           libncurses-dev vim openssh-client libusb-dev libusbredirparser-dev libssl-dev \
@@ -11,20 +13,25 @@ RUN apt-get update && apt-get install -y \
 # download and prepare buildroot
 # (about buildroot.config and kernel.config: see notes.txt)
 WORKDIR /root
-RUN wget https://buildroot.org/downloads/buildroot-2019.08.tar.bz2
-RUN tar xf buildroot-2019.08.tar.bz2
-WORKDIR /root/buildroot-2019.08
+RUN wget https://buildroot.org/downloads/buildroot-${BUILDROOT_VERSION}.tar.bz2
+RUN tar xf buildroot-${BUILDROOT_VERSION}.tar.bz2
+RUN mv /root/buildroot-${BUILDROOT_VERSION} /root/buildroot
+WORKDIR /root/buildroot
+ADD scanpylocal scanpypi utils/
+COPY walt-*.tar.gz dl/
 ADD update-buildroot.sh .
 RUN ./update-buildroot.sh
 ADD buildroot.config .config
-ADD kernel.config kernel.config
-ADD qemu.mk package/qemu/qemu.mk
+#ADD qemu.mk package/qemu/qemu.mk
 ADD overlay /root/overlay
 
 # compile buildroot
 ENV FORCE_UNSAFE_CONFIGURE=1
 RUN make source
 RUN make toolchain
+ADD fix-plumbum-install.sh .
+RUN ./fix-plumbum-install.sh
+ADD kernel.config kernel.config
 RUN make
 
 # download and compile patched qemu
@@ -38,16 +45,11 @@ RUN git clone https://github.com/drakkar-lig/qemu-execve.git && \
     ./configure --target-list=aarch64-linux-user --static && \
     make -j
 
-# get walt-python-package repo ready at [rootfs]/root/walt-python-packages
-WORKDIR /root/buildroot-2019.08/output/target/root
-RUN git clone https://github.com/drakkar-lig/walt-python-packages
-RUN cd walt-python-packages && git fetch origin walt-vpn && git checkout 0e7f7dc46d5a37102055f1a1aba637ef1dfaadba
-
 # chroot customization image
 # **************************
 FROM scratch as chroot_image
 WORKDIR /
-COPY --from=builder /root/buildroot-2019.08/output/target .
+COPY --from=builder /root/buildroot/output/target .
 COPY --from=builder /root/qemu-execve/aarch64-linux-user/qemu-aarch64 .
 SHELL ["/qemu-aarch64", "-execve", "/bin/sh", "-c"]
 ADD chroot-script.sh .
@@ -58,13 +60,13 @@ RUN /chroot-script.sh
 FROM builder as builder_continued
 # restore standard dockerfile RUN command interpreter
 SHELL ["/bin/sh", "-c"]
-WORKDIR /root/buildroot-2019.08/output
+WORKDIR /root/buildroot/output
 RUN rm -rf target
 COPY --from=chroot_image / target
 # cleanup things we needed during the customization step only
-RUN rm -rf target/chroot-script.sh target/qemu-aarch64 target/root/walt-python-packages
+RUN rm -rf target/chroot-script.sh target/qemu-aarch64
 # run 'make' in buildroot dir again to update final SD card image
-WORKDIR /root/buildroot-2019.08
+WORKDIR /root/buildroot
 RUN make
 
 # Creation of final image
@@ -75,6 +77,6 @@ RUN make
 FROM alpine
 RUN apk add mtools util-linux
 WORKDIR /root
-COPY --from=builder_continued /root/buildroot-2019.08/output/images/sdcard.img .
+COPY --from=builder_continued /root/buildroot/output/images/sdcard.img .
 ADD dump-image.sh .
 ENTRYPOINT ["/root/dump-image.sh"]

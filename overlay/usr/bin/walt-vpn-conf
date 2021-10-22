@@ -8,23 +8,27 @@ then
     exit 1
 fi
 
-mkdir /tmp/p1
-mount /dev/mmcblk0p1 /tmp/p1
+{
+    flock 200
+    mkdir -p /run/p1
+    mount -o ro /dev/mmcblk0p1 /run/p1
 
-if [ -f "/tmp/p1/walt-vpn.conf" ]
-then
-    source /tmp/p1/walt-vpn.conf
-    echo "$WALT_VPN_ENTRYPOINT"
-else
-    echo "Missing file walt-vpn.conf on first SD card partition!" >&2
-fi
+    if [ -f "/run/p1/walt-vpn.conf" ]
+    then
+        source /run/p1/walt-vpn.conf
+        echo "$WALT_VPN_ENTRYPOINT"
+    else
+        echo "Missing file walt-vpn.conf on first SD card partition!" >&2
+    fi
 
-umount /tmp/p1
-rmdir /tmp/p1
+    umount /run/p1
+    rmdir /run/p1
 
-if [ "$WALT_VPN_ENTRYPOINT" = "" ]
-then
-    exit 2
-else
-    exit 0  # ok
-fi
+    if [ "$WALT_VPN_ENTRYPOINT" = "" ]
+    then
+        exit 2
+    else
+        exit 0  # ok
+    fi
+} 200>/run/walt-vpn-conf.lock
+

@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+export LOGNAME="root"
+
 # create missing ssh host keys
 # ssh service will try to do it and fail otherwise, because the filesystem
 # is kept read-only.

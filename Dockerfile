@@ -6,7 +6,7 @@ ENV BUILDROOT_VERSION=2024.05
 
 # install needed packages
 RUN apt-get update && apt-get install -y \
-          python3-pip git wget bzip2 make gcc file g++ patch cpio unzip rsync bc perl \
+          python3-pip git wget bzip2 make gcc g++ file patch cpio unzip rsync bc perl \
           libncurses-dev vim openssh-client libusb-dev libusbredirparser-dev libssl-dev \
           pkg-config zlib1g-dev libglib2.0-dev libpixman-1-dev python3-tomli python3-six
 
@@ -56,6 +56,7 @@ RUN make
 # this image will be used to adapt the previously generated SD card image
 # (by dynamically adding a conf file on the fat partition), and then dump
 # the resulting SD card image on its output.
+
 FROM alpine
 RUN apk add mtools util-linux
 WORKDIR /root

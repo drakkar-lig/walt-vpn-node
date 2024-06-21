@@ -7,16 +7,19 @@ $ make menuconfig
 #                                  Configuration file path: "/root/buildroot/kernel.config"
 # - Toolchain / C library: set to glibc
 # - Target packages / Miscellaneous: add QEMU
-#                                    Enable specific targets: "aarch64-softmmu"
-                                     Enable FDT
+#                                    Enable systems emulation
+#                                    Select individual emulator targets: "aarch64"
+#                                    Enable FDT
 # - Target packages / Development tools: add git, make
 # - Target packages / Networking applications: add iproute2, openssh, ntp and ntpd/sntp/ntpq
 # - Target packages > Libraries > Hardware handling: add libusb
 # - Target packages > Libraries > Networking : add usbredir
 # - Target packages > Shell and utilities : add screen
 # - Target packages > Interpreter languages and scripting: add python3
-#                                                          add External python modules / python-cffi, python-pip
 #                                                          add Core python modules / curses, readline
+#                                                          add External python modules / python-cffi,
+#                                                                python-pip, python-plumbum,
+#                                                                python-walt-*
 # - Filesystem images / ext2/3/4 root filesystem: set exact size to 400M
 # - System configuration / System hostname: set to "walt-vpn"
 # - System configuration / System banner: set to "Welcome to walt vpn node"
@@ -28,3 +31,4 @@ $ make menuconfig
 $ make raspberrypi3_64_defconfig 
 $ make linux-menuconfig   # very long process the 1st time
 # - Virtualization: enable
+#      Kernel-based Virtual Machine (KVM) support

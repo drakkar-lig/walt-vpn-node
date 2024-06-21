@@ -15,11 +15,15 @@ sed -i -e 's/enable-kernel=.* \\$/enable-kernel=4.19 \\/' ./package/glibc/glibc.
 
 # add dependencies
 utils/scanpypi plumbum
+sed -i -e "s/^\(PYTHON_PLUMBUM_SETUP_TYPE =\) unknown/\1 pep517/" \
+    package/python-plumbum/python-plumbum.mk
+sed -i '/^PYTHON_PLUMBUM_SETUP_TYPE/a PYTHON_PLUMBUM_DEPENDENCIES = host-python-hatchling host-python-hatch-vcs' \
+    package/python-plumbum/python-plumbum.mk
 
-for dl_file in dl/walt-*.tar.gz
+for dl_file in dl/walt*.tar.gz
 do
     # parse package name and version
-    set -- $(echo $dl_file | sed -e 's/^...\(.*\)-\([^-]*\).tar.gz/\1 \2/')
+    set -- $(echo $dl_file | sed -e 's/^...\(.*\)-\([^-]*\).tar.gz/\1 \2/' | tr "_" "-")
     walt_package="$1"
     version="$2"
 
@@ -27,9 +31,10 @@ do
     python_package="python-$walt_package"
     mkdir -p "dl/$python_package"
     mv $dl_file "dl/$python_package/"
+    bn_dl_file=$(basename $dl_file)
 
     # add package to buildroot
-    utils/scanpylocal "dl/$python_package/$walt_package-$version.tar.gz"
+    utils/scanpylocal "dl/$python_package/$bn_dl_file"
 
     # let the build system know it is downloaded
     mkdir -p "output/build/$python_package-$version"
